@@ -24,6 +24,8 @@ identity.clientSecret: Tcx9kFqVwxlnWMZOhjYCemnLvBr1Gvs3
 keycloakUrl: http://localhost:18080
 operateUrl: http://localhost:8081/
 
+operate.sync.scheduled: true
+
 spring:
   datasource:
     url: jdbc:h2:file:./h2/db

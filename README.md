@@ -33,3 +33,13 @@ If you don't change any configuration, you should be able to access the audit ap
 The credentials are demo/demo.
 
 To start populating your application, you should start and complete process instances against your cluster.
+
+## Configurations
+To make the audit app works on SaaS clusters (or on a zeebe engine that you don't want to extend with a custom exporter), there is a configuration available in the yaml file :
+```
+operate.sync.scheduled: true
+```
+
+In such case:
+- the audit endpoint exposed to the exporter will discard incoming messages.
+- A scheduled task (every 4 hours) is executed to get all completed instances by chunks (100) from the Operate's API. The last "sortValues" is stored in the DB as the next sync point. 

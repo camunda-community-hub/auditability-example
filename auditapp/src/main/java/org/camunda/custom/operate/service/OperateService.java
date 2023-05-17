@@ -9,6 +9,7 @@ import io.camunda.operate.dto.FlownodeInstance;
 import io.camunda.operate.dto.ProcessDefinition;
 import io.camunda.operate.dto.ProcessInstance;
 import io.camunda.operate.dto.ProcessInstanceState;
+import io.camunda.operate.dto.SearchResult;
 import io.camunda.operate.dto.Variable;
 import io.camunda.operate.exception.OperateException;
 import io.camunda.operate.search.FlownodeInstanceFilter;
@@ -64,6 +65,9 @@ public class OperateService {
   @Value("${keycloakUrl:notProvided}")
   private String keycloakUrl;
 
+  @Value("${operate.sync.scheduled:false}")
+  private boolean scheduledSync;
+
   private CamundaOperateClient client;
 
   @Autowired private RetryTemplate retryTemplate;
@@ -102,42 +106,48 @@ public class OperateService {
                     + request.getProcessInstanceKey()
                     + " is not completed in Operate");
           }
-          ProcDefinition def = procDefRepository.findByDefKey(instance.getProcessDefinitionKey());
-          if (def == null) {
-            def = new org.camunda.custom.operate.data.ProcDefinition();
-            ProcessDefinition procDef =
-                client.getProcessDefinition(instance.getProcessDefinitionKey());
-            def.setDefKey(instance.getProcessDefinitionKey());
-            def.setName(procDef.getName());
-            def.setVersion(instance.getProcessVersion());
-            def.setBpmnProcessId(instance.getBpmnProcessId());
-            def.setXml(
-                getCamundaOperateClient()
-                    .getProcessDefinitionXml(instance.getProcessDefinitionKey()));
-            procDefRepository.save(def);
-          }
-
-          List<FlownodeInstance> history =
-              getProcessInstanceHistory(request.getProcessInstanceKey());
-          List<Variable> variables = getProcessInstanceVariables(request.getProcessInstanceKey());
-          ArchivedInstance instanceHistory = new ArchivedInstance();
-          instanceHistory.setProcessInstanceKey(instance.getKey());
-          instanceHistory.setProcessVersion(instance.getProcessVersion());
-          instanceHistory.setBpmnProcessId(instance.getBpmnProcessId());
-          instanceHistory.setParentKey(instance.getParentKey());
-          instanceHistory.setStartDate(instance.getStartDate());
-          instanceHistory.setEndDate(instance.getEndDate());
-          instanceHistory.setProcessDefinitionKey(instance.getProcessDefinitionKey());
-          instanceHistory.setHistory(history);
-          instanceHistory.setVariables(variables);
-          archivedInstanceRepository.save(instanceHistory);
+          storeAuditLogs(instance);
           request.setStatus("COMPLETED");
           auditRequests.put(request.getProcessInstanceKey(), request);
           return null;
         });
   }
 
+  public void storeAuditLogs(ProcessInstance instance) throws OperateException {
+
+    ProcDefinition def = procDefRepository.findByDefKey(instance.getProcessDefinitionKey());
+    if (def == null) {
+      def = new org.camunda.custom.operate.data.ProcDefinition();
+      ProcessDefinition procDef = client.getProcessDefinition(instance.getProcessDefinitionKey());
+      def.setDefKey(instance.getProcessDefinitionKey());
+      def.setName(procDef.getName());
+      def.setVersion(instance.getProcessVersion());
+      def.setBpmnProcessId(instance.getBpmnProcessId());
+      def.setXml(
+          getCamundaOperateClient().getProcessDefinitionXml(instance.getProcessDefinitionKey()));
+      procDefRepository.save(def);
+    }
+
+    List<FlownodeInstance> history = getProcessInstanceHistory(instance.getKey());
+    List<Variable> variables = getProcessInstanceVariables(instance.getKey());
+    ArchivedInstance instanceHistory = new ArchivedInstance();
+    instanceHistory.setProcessInstanceKey(instance.getKey());
+    instanceHistory.setProcessVersion(instance.getProcessVersion());
+    instanceHistory.setBpmnProcessId(instance.getBpmnProcessId());
+    instanceHistory.setParentKey(instance.getParentKey());
+    instanceHistory.setStartDate(instance.getStartDate());
+    instanceHistory.setEndDate(instance.getEndDate());
+    instanceHistory.setProcessDefinitionKey(instance.getProcessDefinitionKey());
+    instanceHistory.setHistory(history);
+    instanceHistory.setVariables(variables);
+    archivedInstanceRepository.save(instanceHistory);
+  }
+
   public AuditRequest getAuditLogs(AuditRequest request) throws OperateException {
+    if (scheduledSync) {
+      request.setStatus("DISCARDED_FOR_SCHEDULED_SYNC");
+      return request;
+    }
     AuditRequest existing = auditRequests.getIfPresent(request.getProcessInstanceKey());
     if (existing != null && !existing.getStatus().equals("ERROR")) {
       return existing;
@@ -217,5 +227,10 @@ public class OperateService {
             .sort(new Sort("name", SortOrder.ASC))
             .build();
     return getCamundaOperateClient().searchVariables(varQuery);
+  }
+
+  public SearchResult<ProcessInstance> searchProcessInstanceResults(SearchQuery query)
+      throws OperateException {
+    return getCamundaOperateClient().searchProcessInstanceResults(query);
   }
 }
