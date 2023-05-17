@@ -1,0 +1,50 @@
+# https://github.com/camunda-community-hub/spring-zeebe#configuring-camunda-platform-8-saas-connection
+# https://github.com/camunda-community-hub/spring-zeebe#additional-configuration-options
+
+keycloak:
+  enabled: false
+#  auth-server-url: http://localhost:18080/auth
+#  realm: camunda-platform
+#  resource: ConnectorRuntime
+#  public-client: true
+#  principal-attribute: preferred_username
+  
+#zeebe.client.cloud:
+#  region: bru-2
+#  clusterId: 09fd4040-d5b7-46e1-8bef-91d2ebc031f6
+#  clientId: ThdmjgdzyOBQJ1nRtXuc3vV8XlGbNSmW
+#  clientSecret: omqOL0nMi7jcW4CVNs2k5eoAWURXdq.RN.93XPTZAF70~wsuQWV8g82TD4U~BK7x
+  
+zeebe.client:
+  broker.gatewayAddress: 127.0.0.1:26500
+  security.plaintext: true
+  
+identity.clientId: pouet
+identity.clientSecret: Tcx9kFqVwxlnWMZOhjYCemnLvBr1Gvs3
+keycloakUrl: http://localhost:18080
+operateUrl: http://localhost:8081/
+
+spring:
+  datasource:
+    url: jdbc:h2:file:./h2/db
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+server:
+  port: 8090
+  error:
+    whitelabel:
+      enabled: false
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1048576
+
+logging:
+  level:
+    root: INFO

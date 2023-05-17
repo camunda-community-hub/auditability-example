@@ -1,0 +1,27 @@
+{
+  "name" : "ACME",
+  "modified" : 1684307165221,
+  "active" : true,
+  "cryptPassword" : true,
+  "users" : [ {
+    "username" : "test",
+    "password" : {
+      "value" : "$2a$10$iPOvcG8E33jogFt4EbN.YOLl9ubmsf81auRXeTDXsjovUpLo7ulr2",
+      "encrypted" : true
+    },
+    "firstname" : "test",
+    "lastname" : "test",
+    "email" : null,
+    "roles" : [ "approveModif", "modifState" ]
+  }, {
+    "username" : "demo",
+    "password" : {
+      "value" : "$2a$10$KFy8hQHyzXwTsTDz78Whje.TNNXMzV59piCCfsrM/iYOzEQuQoN1q",
+      "encrypted" : true
+    },
+    "firstname" : "De",
+    "lastname" : "Mo",
+    "email" : "christophe.dame@camunda.com",
+    "roles" : [ "modifVariables", "viewVariables", "approveModif", "modifState", "autoApproveModif", "adminUsers" ]
+  } ]
+}
