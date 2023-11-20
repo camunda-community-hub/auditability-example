@@ -16,7 +16,7 @@
     "@types/react-dom": "^18.0.6",
     "@uiw/react-codemirror": "^4.12.2",
     "allotment": "^1.17.0",
-    "axios": "^0.27.2",
+    "axios": "^1.0.0",
     "bootstrap": "^5.2.1",
     "bpmn-js": "10.3.0",
     "bpmn-moddle": "8.0.0",
